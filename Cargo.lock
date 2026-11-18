@@ -250,9 +250,9 @@ dependencies = [
 
 [[package]]
 name = "embassy-net"
-version = "0.10.0"
+version = "0.10.1"
 source = "sparse+https://apps-devel.lightyearlayer.com/kellnr/api/v1/crates/"
-checksum = "9691d6fb7d970097e2a61e38c595d96d64998e07b7573dbc08dd3b64edf71457"
+checksum = "7acf6b663716bb97c2a4e932872efc8e9f30f4072063e0feab25b69ac8536c3d"
 dependencies = [
  "defmt 1.1.1",
  "document-features",
@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "picoserve"
-version = "0.22.1"
+version = "0.22.2"
 dependencies = [
  "const-sha1",
  "data-encoding",
@@ -1464,9 +1464,6 @@ dependencies = [
  "defmt 1.1.1",
  "document-features",
  "heapless 0.9.3",
- "libc",
- "log",
- "serde",
  "xarxa-driver",
 ]
 
