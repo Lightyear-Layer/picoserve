@@ -286,7 +286,7 @@ pub(crate) mod tokio_support {
 }
 
 #[cfg(feature = "embassy")]
-impl Write for embassy_net::tcp::TcpWriter<'_> {
+impl Write for embassy_net::tcp::TcpWriter<'_, '_> {
     fn write_with<F: FnOnce(BorrowedCursor<'_>) -> R, R>(
         &mut self,
         f: F,
@@ -302,16 +302,16 @@ impl Write for embassy_net::tcp::TcpWriter<'_> {
 }
 
 #[cfg(feature = "embassy")]
-impl<'s> Socket<super::EmbassyRuntime> for embassy_net::tcp::TcpSocket<'s> {
+impl<'s> Socket<super::EmbassyRuntime> for embassy_net::tcp::TcpSocket<'_, 's> {
     type Error = embassy_net::tcp::Error;
     type ReadHalf<'a>
-        = embassy_net::tcp::TcpReader<'a>
+        = embassy_net::tcp::TcpReader<'a, 's>
     where
-        's: 'a;
+        Self: 'a;
     type WriteHalf<'a>
-        = embassy_net::tcp::TcpWriter<'a>
+        = embassy_net::tcp::TcpWriter<'a, 's>
     where
-        's: 'a;
+        Self: 'a;
 
     fn split(&mut self) -> (Self::ReadHalf<'_>, Self::WriteHalf<'_>) {
         embassy_net::tcp::TcpSocket::split(self)

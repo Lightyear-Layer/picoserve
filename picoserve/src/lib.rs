@@ -720,25 +720,44 @@ impl<
         let mut shutdown_signal = core::pin::pin!(shutdown_signal);
 
         loop {
+            let Ok(mut listener) = embassy_net::tcp::TcpListener::new(stack) else {
+                log_warn!("full");
+                continue;
+            };
+            if listener.listen(port).is_err() {
+                log_warn!("accept");
+                continue;
+            };
+            
             let mut socket = match futures::select_either(shutdown_signal.as_mut(), async {
                 let mut socket =
-                    embassy_net::tcp::TcpSocket::new(stack, tcp_rx_buffer, tcp_tx_buffer);
+                    embassy_net::tcp::TcpSocket::new(stack, tcp_rx_buffer, tcp_tx_buffer).unwrap();
 
                 log_info!("{}: Listening on TCP:{}...", task_id, port);
 
-                socket.accept(port).await.map(|()| socket)
+                match listener.accept().await {
+                    Ok(token) => {
+                        socket.accept(token).await.map(|()| socket).map_err(|error| {
+                            log_warn!("{}: accept error: {:?}", task_id, error);
+                            ()
+                        })
+                    }
+                    Err(error) => {
+                        log_warn!("{}: accept error: {:?}", task_id, error);
+                        Err(())
+                    }
+                }
             })
             .await
             {
                 futures::Either::First((shutdown_reason, _)) => return shutdown_reason,
-                futures::Either::Second(Err(error)) => {
-                    log_warn!("{}: accept error: {:?}", task_id, error);
+                futures::Either::Second(Err(())) => {
                     continue;
                 }
                 futures::Either::Second(Ok(socket)) => socket,
             };
 
-            let remote_endpoint = socket.remote_endpoint();
+            let remote_endpoint = socket.remote_addr();
 
             log_info!(
                 "{}: Received connection from {:?}",
